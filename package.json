@@ -4,7 +4,7 @@
   "description": "M365 Copilot Plugin: Power Automate Connector",
   "main": "dist/index.js",
   "scripts": {
-    "build": "echo 'Building power-automate-connector' && mkdir -p dist && cp -r src/* dist/",
+    "build": "pwsh -c \"Write-Host 'Building power-automate-connector'; if (!(Test-Path dist)) { New-Item -ItemType Directory -Path dist -Force }; Copy-Item -Path 'src/*' -Destination 'dist/' -Recurse -Force\"",
     "test": "jest",
     "lint": "echo 'Linting power-automate-connector'",
     "validate-schemas": "node scripts/validate-schemas.js",
