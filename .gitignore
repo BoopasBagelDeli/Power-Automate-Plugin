@@ -40,3 +40,5 @@ Thumbs.db
 config.json
 secrets.json
 
+PAT.txt
+*.pat
