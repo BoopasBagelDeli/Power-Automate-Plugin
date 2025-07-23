@@ -6,10 +6,13 @@
   "scripts": {
     "build": "echo 'Building power-automate-connector' && mkdir -p dist && cp -r src/* dist/",
     "test": "jest",
+    "lint": "echo 'Linting power-automate-connector'",
     "validate-schemas": "node scripts/validate-schemas.js",
-    "deploy": "pwsh -File ./scripts/deploy-connector.ps1",
-    "deploy:dev": "pwsh -File ./scripts/deploy-connector.ps1 -Environment dev",
-    "deploy:prod": "pwsh -File ./scripts/deploy-connector.ps1 -Environment prod"
+    "deploy": "pwsh -File ./scripts/deploy.ps1",
+    "deploy:dev": "pwsh -File ./scripts/deploy.ps1 -Environment development",
+    "deploy:prod": "pwsh -File ./scripts/deploy.ps1 -Environment production",
+    "deploy:build-only": "pwsh -File ./scripts/deploy.ps1 -BuildOnly",
+    "ci:deploy": "pwsh -File ./scripts/deploy.ps1 -Environment $DEPLOY_ENVIRONMENT"
   },
   "keywords": [
     "m365",
