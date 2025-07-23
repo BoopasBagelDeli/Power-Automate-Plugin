@@ -1,0 +1,97 @@
+{
+  "manifestVersion": "1.0",
+  "id": "power-automate-connector",
+  "name": "Power Automate Connector",
+  "version": "1.0.0",
+  "description": "Connect to your organization's Power Automate flows",
+  "publisher": "BoopasBagelDeli",
+  "enabledState": "enabled",
+  "license": "MIT",
+  "privacyPolicy": "https://www.boopasbageldeli.com/privacy",
+  "termsOfUse": "https://www.boopasbageldeli.com/terms",
+  "categories": [
+    "productivity",
+    "automation"
+  ],
+  "endpoints": [
+    {
+      "type": "OpenAPI",
+      "urlTemplate": "https://copilot-plugin-func-f46zzw7hhsh2q.azurewebsites.net/api",
+      "authentication": {
+        "type": "oauth2",
+        "flow": "authorizationCode",
+        "authorizationUrl": "https://login.microsoftonline.com/de96b383-5f31-4895-9b41-88f3b7435919/oauth2/v2.0/authorize",
+        "tokenUrl": "https://login.microsoftonline.com/de96b383-5f31-4895-9b41-88f3b7435919/oauth2/v2.0/token",
+        "scopes": [
+          "https://graph.microsoft.com/.default"
+        ]
+      },
+      "specification": {
+        "type": "openapi",
+        "value": "./openapi/openapi.json"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "id": "listFlows",
+      "name": "List Flows",
+      "description": "Lists all flows available to the user",
+      "endpoint": "/flows",
+      "method": "GET",
+      "schema": {
+        "$ref": "./schemas/schemas.json#/schemas/Flow"
+      }
+    },
+    {
+      "id": "getFlowDetails",
+      "name": "Get Flow Details",
+      "description": "Get details about a specific flow",
+      "endpoint": "/flows/{flowId}",
+      "method": "GET",
+      "schema": {
+        "$ref": "./schemas/schemas.json#/schemas/Flow"
+      },
+      "parameters": [
+        {
+          "name": "flowId",
+          "type": "string",
+          "required": true,
+          "description": "ID of the flow to get details for"
+        }
+      ]
+    },
+    {
+      "id": "runFlow",
+      "name": "Run Flow",
+      "description": "Trigger a flow to run",
+      "endpoint": "/flows/{flowId}/run",
+      "method": "POST",
+      "schema": {
+        "$ref": "./schemas/schemas.json#/schemas/FlowRun"
+      },
+      "parameters": [
+        {
+          "name": "flowId",
+          "type": "string",
+          "required": true,
+          "description": "ID of the flow to run"
+        },
+        {
+          "name": "parameters",
+          "type": "object",
+          "required": false,
+          "description": "Parameters to pass to the flow"
+        }
+      ]
+    }
+  ],
+  "languageModels": [
+    {
+      "type": "m365",
+      "capabilities": [
+        "chat"
+      ]
+    }
+  ]
+}

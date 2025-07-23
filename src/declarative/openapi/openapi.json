@@ -1,0 +1,216 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Power Automate Connector API",
+    "description": "API for interacting with Power Automate flows and processes",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Power Automate API Support",
+      "email": "support@boopasbageldeli.onmicrosoft.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://copilot-plugin-func-f46zzw7hhsh2q.azurewebsites.net/api",
+      "description": "Production server"
+    }
+  ],
+  "paths": {
+    "/flows": {
+      "get": {
+        "summary": "List all flows",
+        "description": "Get a list of all Power Automate flows available to the user",
+        "operationId": "listFlows",
+        "tags": ["Flows"],
+        "parameters": [
+          {
+            "name": "environment",
+            "in": "query",
+            "description": "Environment to filter flows",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of flows",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Flow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flows/{flowId}": {
+      "get": {
+        "summary": "Get flow details",
+        "description": "Get details about a specific Power Automate flow",
+        "operationId": "getFlow",
+        "tags": ["Flows"],
+        "parameters": [
+          {
+            "name": "flowId",
+            "in": "path",
+            "description": "ID of the flow",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Flow details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Flow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flows/{flowId}/run": {
+      "post": {
+        "summary": "Run a flow",
+        "description": "Trigger a Power Automate flow to run",
+        "operationId": "runFlow",
+        "tags": ["Flows"],
+        "parameters": [
+          {
+            "name": "flowId",
+            "in": "path",
+            "description": "ID of the flow to run",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Parameters for the flow",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlowParameters"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Flow triggered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlowRun"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Flow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the flow"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the flow"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of what the flow does"
+          },
+          "createdTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the flow was created"
+          },
+          "lastModifiedTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the flow was last modified"
+          },
+          "state": {
+            "type": "string",
+            "enum": ["Started", "Stopped", "Suspended"],
+            "description": "Current state of the flow"
+          }
+        }
+      },
+      "FlowParameters": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Dynamic parameters for the flow"
+      },
+      "FlowRun": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the flow run"
+          },
+          "flowId": {
+            "type": "string",
+            "description": "ID of the flow that was run"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Running", "Succeeded", "Failed", "Cancelled"],
+            "description": "Status of the flow run"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the flow run started"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "OAuth2": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://login.microsoftonline.com/de96b383-5f31-4895-9b41-88f3b7435919/oauth2/v2.0/authorize",
+            "tokenUrl": "https://login.microsoftonline.com/de96b383-5f31-4895-9b41-88f3b7435919/oauth2/v2.0/token",
+            "scopes": {
+              "https://graph.microsoft.com/.default": "Access Microsoft Graph API"
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "OAuth2": ["https://graph.microsoft.com/.default"]
+    }
+  ],
+  "tags": [
+    {
+      "name": "Flows",
+      "description": "Operations related to Power Automate flows"
+    }
+  ]
+}

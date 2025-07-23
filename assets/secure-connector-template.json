@@ -1,0 +1,95 @@
+{
+  "contentVersion": "1.0.0.0",
+  "variables": {
+    "keyVaultUri": "https://kvf46zzw7hdeclarat.vault.azure.net/",
+    "functionAppUrl": "https://copilot-plugin-func-f46zzw7hhsh2q.azurewebsites.net"
+  },
+  "resources": [
+    {
+      "identity": {
+        "type": "UserAssigned",
+        "userAssignedIdentities": {
+          "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('managedIdentityName'))]": {}
+        }
+      },
+      "name": "[parameters('connectorName')]",
+      "type": "Microsoft.Web/customApis",
+      "properties": {
+        "description": "Secure access to company data across M365 using managed identity and Key Vault",
+        "iconUri": "https://connectoricons-prod.azureedge.net/releases/v1.0.1538/1.0.1538.2619/azureautomation/icon.png",
+        "capabilities": [
+          "actions"
+        ],
+        "brandColor": "#0078d4",
+        "connectionParameters": {
+          "token": {
+            "type": "oauthSetting",
+            "oAuthSettings": {
+              "customParameters": {
+                "tenantId": {
+                  "value": "[concat('@Microsoft.KeyVault(SecretUri=', variables('keyVaultUri'), 'secrets/azure-tenant-id/)')]"
+                }
+              },
+              "identityProvider": "aad",
+              "redirectMode": "Global",
+              "clientId": "[concat('@Microsoft.KeyVault(SecretUri=', variables('keyVaultUri'), 'secrets/azure-client-id/)')]",
+              "redirectUrl": "https://global.consent.azure-apim.net/redirect",
+              "properties": {
+                "IsFirstParty": "False",
+                "AzureActiveDirectoryResourceId": "https://graph.microsoft.com/"
+              },
+              "scopes": [
+                "https://graph.microsoft.com/.default"
+              ]
+            }
+          }
+        },
+        "displayName": "Company Data API (Secure)",
+        "swagger": "@{json(string(reference(resourceId('Microsoft.Storage/storageAccounts', 'storageAccountName'), '2019-06-01').primaryEndpoints.blob))}"
+      },
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-06-01"
+    }
+  ],
+  "outputs": {
+    "connectorName": {
+      "type": "string",
+      "value": "[parameters('connectorName')]"
+    },
+    "connectorId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Web/customApis', parameters('connectorName'))]"
+    }
+  },
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "parameters": {
+    "keyVaultName": {
+      "defaultValue": "kvf46zzw7hdeclarat",
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Key Vault"
+      }
+    },
+    "managedIdentityName": {
+      "defaultValue": "copilot-plugin-identity-f46zzw7hhsh2q",
+      "type": "string",
+      "metadata": {
+        "description": "Name of the managed identity"
+      }
+    },
+    "environmentName": {
+      "defaultValue": "Boopas (default)",
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Power Platform environment"
+      }
+    },
+    "connectorName": {
+      "defaultValue": "CompanyDataAPISecure",
+      "type": "string",
+      "metadata": {
+        "description": "Name of the custom connector"
+      }
+    }
+  }
+}

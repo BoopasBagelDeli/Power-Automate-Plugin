@@ -1,0 +1,149 @@
+# Azure DevOps CI/CD Pipeline for Power Automate Connector
+# File: azure-pipelines.yml
+
+trigger:
+  branches:
+    include:
+    - main
+    - master
+    - develop
+  paths:
+    include:
+    - packages/power-automate/**
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  packagePath: 'packages/power-automate'
+  artifactName: 'power-automate-connector'
+  # Create these variables in your Azure DevOps project settings
+  # AZURE_SUBSCRIPTION: ID of your Azure subscription
+  # FUNCTION_APP_NAME: Name of your Azure Function App
+  # APP_SERVICE_PLAN: Name of your App Service Plan
+  # RESOURCE_GROUP: Name of your Resource Group
+
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  - job: Build
+    displayName: 'Build'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '16.x'
+      displayName: 'Install Node.js'
+
+    - script: |
+        cd $(packagePath)
+        npm install
+      displayName: 'Install dependencies'
+
+    - script: |
+        cd $(packagePath)
+        npm run build
+      displayName: 'Build package'
+      
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: '$(packagePath)'
+        contents: |
+          src/**
+          dist/**
+          package.json
+          package-lock.json
+        targetFolder: '$(Build.ArtifactStagingDirectory)/$(artifactName)'
+      displayName: 'Copy files to artifact staging'
+      
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)/$(artifactName)'
+        artifactName: '$(artifactName)'
+      displayName: 'Publish build artifacts'
+
+    # Validate declarative plugin files
+    - script: |
+        cd $(packagePath)
+        npm run validate-schemas
+      displayName: 'Validate schema files'
+      continueOnError: true
+
+- stage: Test
+  displayName: 'Test Stage'
+  dependsOn: Build
+  jobs:
+  - job: Test
+    displayName: 'Run Tests'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '16.x'
+      displayName: 'Install Node.js'
+
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: '$(artifactName)'
+        downloadPath: '$(System.ArtifactsDirectory)'
+      displayName: 'Download build artifacts'
+
+    - script: |
+        cd $(System.ArtifactsDirectory)/$(artifactName)
+        npm install
+        npm test
+      displayName: 'Run tests'
+      continueOnError: false
+
+- stage: Deploy_Dev
+  displayName: 'Deploy to Development'
+  dependsOn: Test
+  condition: succeeded()
+  jobs:
+  - deployment: Deploy
+    displayName: 'Deploy to Dev Environment'
+    environment: 'development'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureFunctionApp@1
+            inputs:
+              azureSubscription: '$(AZURE_SUBSCRIPTION)'
+              appType: 'functionApp'
+              appName: '$(FUNCTION_APP_NAME)-dev'
+              package: '$(Pipeline.Workspace)/$(artifactName)/dist'
+              deploymentMethod: 'auto'
+            displayName: 'Deploy to Azure Functions'
+            
+          - script: |
+              echo "Running post-deployment validation..."
+              # Add validation scripts here
+            displayName: 'Post-deployment validation'
+
+- stage: Deploy_Prod
+  displayName: 'Deploy to Production'
+  dependsOn: Deploy_Dev
+  condition: succeeded()
+  jobs:
+  - deployment: Deploy
+    displayName: 'Deploy to Production Environment'
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureFunctionApp@1
+            inputs:
+              azureSubscription: '$(AZURE_SUBSCRIPTION)'
+              appType: 'functionApp'
+              appName: '$(FUNCTION_APP_NAME)-prod'
+              package: '$(Pipeline.Workspace)/$(artifactName)/dist'
+              deploymentMethod: 'auto'
+            displayName: 'Deploy to Azure Functions'
+            
+          - script: |
+              echo "Running post-deployment validation..."
+              # Add production validation scripts here
+            displayName: 'Post-deployment validation'

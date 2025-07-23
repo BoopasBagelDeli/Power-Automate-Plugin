@@ -1,0 +1,25 @@
+[project]
+name = "power-automate"
+version = "0.1.0"
+description = "Microsoft 365 Copilot Plugin - power-automate"
+authors = [
+    {name = "Your Organization", email = "support@company.com"}
+]
+requires-python = ">=3.9"
+readme = "README.md"
+license = {file = "LICENSE"}
+
+[project.urls]
+"Homepage" = "https://github.com/yourusername/power-automate"
+"Bug Tracker" = "https://github.com/yourusername/power-automate/issues"
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+

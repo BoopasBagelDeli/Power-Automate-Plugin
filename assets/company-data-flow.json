@@ -1,0 +1,165 @@
+{
+  "schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "$connections": {
+      "defaultValue": {},
+      "type": "Object"
+    },
+    "functionAppUrl": {
+      "defaultValue": "https://copilot-plugin-func-f46zzw7hhsh2q.azurewebsites.net",
+      "type": "String"
+    }
+  },
+  "triggers": {
+    "manual": {
+      "type": "Request",
+      "kind": "Http",
+      "inputs": {
+        "schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "title": "Search Query",
+              "description": "The search query to execute against company data"
+            },
+            "dataSource": {
+              "type": "string",
+              "title": "Data Source",
+              "description": "The data source to search (files, emails, teams, etc.)",
+              "enum": ["files", "emails", "teams", "calendar", "directory"]
+            },
+            "maxResults": {
+              "type": "integer",
+              "title": "Maximum Results",
+              "description": "Maximum number of results to return",
+              "default": 10
+            }
+          },
+          "required": ["query", "dataSource"]
+        }
+      }
+    }
+  },
+  "actions": {
+    "Get_Access_Token": {
+      "type": "Http",
+      "inputs": {
+        "method": "POST",
+        "uri": "https://login.microsoftonline.com/@{variables('tenantId')}/oauth2/v2.0/token",
+        "headers": {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        "body": "client_id=@{variables('clientId')}&client_secret=@{variables('clientSecret')}&scope=https://graph.microsoft.com/.default&grant_type=client_credentials"
+      },
+      "runAfter": {
+        "Initialize_Tenant_ID": ["Succeeded"]
+      }
+    },
+    "Initialize_Client_ID": {
+      "type": "InitializeVariable",
+      "inputs": {
+        "variables": [
+          {
+            "name": "clientId",
+            "type": "string",
+            "value": "5bc6594b-acd4-4e3b-93af-9dabab51c541"
+          }
+        ]
+      },
+      "runAfter": {}
+    },
+    "Initialize_Client_Secret": {
+      "type": "InitializeVariable",
+      "inputs": {
+        "variables": [
+          {
+            "name": "clientSecret",
+            "type": "string",
+            "value": "@parameters('$connections')['companyDataConnector']['connectionString']"
+          }
+        ]
+      },
+      "runAfter": {
+        "Initialize_Client_ID": ["Succeeded"]
+      }
+    },
+    "Initialize_Tenant_ID": {
+      "type": "InitializeVariable",
+      "inputs": {
+        "variables": [
+          {
+            "name": "tenantId",
+            "type": "string",
+            "value": "de96b383-5f31-4895-9b41-88f3b7435919"
+          }
+        ]
+      },
+      "runAfter": {
+        "Initialize_Client_Secret": ["Succeeded"]
+      }
+    },
+    "Call_Company_Data_API": {
+      "type": "Http",
+      "inputs": {
+        "method": "POST",
+        "uri": "@{parameters('functionAppUrl')}/api/search",
+        "headers": {
+          "Authorization": "Bearer @{body('Get_Access_Token')['access_token']}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "query": "@{triggerBody()['query']}",
+          "dataSource": "@{triggerBody()['dataSource']}",
+          "maxResults": "@{triggerBody()['maxResults']}"
+        }
+      },
+      "runAfter": {
+        "Get_Access_Token": ["Succeeded"]
+      }
+    },
+    "Transform_Results": {
+      "type": "Select",
+      "inputs": {
+        "from": "@body('Call_Company_Data_API')['results']",
+        "select": {
+          "id": "@item()['id']",
+          "title": "@item()['title']",
+          "content": "@item()['content']",
+          "source": "@item()['source']",
+          "lastModified": "@item()['lastModified']",
+          "author": "@item()['author']",
+          "url": "@item()['url']",
+          "relevanceScore": "@item()['relevanceScore']"
+        }
+      },
+      "runAfter": {
+        "Call_Company_Data_API": ["Succeeded"]
+      }
+    },
+    "Response": {
+      "type": "Response",
+      "kind": "Http",
+      "inputs": {
+        "statusCode": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "success": true,
+          "query": "@{triggerBody()['query']}",
+          "dataSource": "@{triggerBody()['dataSource']}",
+          "totalResults": "@length(body('Transform_Results'))",
+          "results": "@body('Transform_Results')",
+          "executedAt": "@utcNow()",
+          "processingTime": "@formatDateTime(utcNow(), 'yyyy-MM-ddTHH:mm:ss.fffZ')"
+        }
+      },
+      "runAfter": {
+        "Transform_Results": ["Succeeded"]
+      }
+    }
+  },
+  "outputs": {}
+}

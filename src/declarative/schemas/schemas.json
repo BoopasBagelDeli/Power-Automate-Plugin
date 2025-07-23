@@ -1,0 +1,144 @@
+{
+  "schemas": {
+    "Flow": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the flow"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the flow"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of what the flow does"
+        },
+        "createdTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the flow was created"
+        },
+        "lastModifiedTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the flow was last modified"
+        },
+        "state": {
+          "type": "string",
+          "enum": ["Started", "Stopped", "Suspended"],
+          "description": "Current state of the flow"
+        },
+        "environment": {
+          "type": "string",
+          "description": "Environment where the flow is deployed"
+        },
+        "creator": {
+          "type": "string",
+          "description": "User who created the flow"
+        },
+        "triggers": {
+          "type": "array",
+          "description": "List of triggers for this flow",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Type of trigger (manual, scheduled, etc.)"
+              },
+              "name": {
+                "type": "string",
+                "description": "Name of the trigger"
+              }
+            }
+          }
+        },
+        "actions": {
+          "type": "array",
+          "description": "List of actions in this flow",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the action"
+              },
+              "type": {
+                "type": "string",
+                "description": "Type of action"
+              }
+            }
+          }
+        }
+      }
+    },
+    "FlowRun": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the flow run"
+        },
+        "flowId": {
+          "type": "string",
+          "description": "ID of the flow that was run"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Running", "Succeeded", "Failed", "Cancelled"],
+          "description": "Status of the flow run"
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the flow run started"
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the flow run ended"
+        },
+        "duration": {
+          "type": "string",
+          "description": "Duration of the flow run"
+        },
+        "error": {
+          "type": "object",
+          "description": "Error information if the flow run failed",
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "Environment": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Environment ID"
+        },
+        "name": {
+          "type": "string",
+          "description": "Environment name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Environment description"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["Default", "Production", "Sandbox", "Test", "Trial"],
+          "description": "Type of environment"
+        }
+      }
+    }
+  }
+}
