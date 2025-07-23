@@ -28,6 +28,7 @@ $Green = [ConsoleColor]::Green
 $Yellow = [ConsoleColor]::Yellow
 $Red = [ConsoleColor]::Red
 $Cyan = [ConsoleColor]::Cyan
+$White = [ConsoleColor]::White
 
 Write-Host "=========================================" -ForegroundColor $Cyan
 Write-Host "POWER AUTOMATE PLUGIN DEPLOYMENT" -ForegroundColor $Cyan
@@ -98,11 +99,11 @@ Write-Host "Azure CLI detected" -ForegroundColor $Green
 
 # Set default values based on environment
 if ($Environment -eq "development") {
-    if (-not $ResourceGroup) { $ResourceGroup = "rg-powerautomate-dev" }
-    if (-not $FunctionAppName) { $FunctionAppName = "func-powerautomate-dev" }
+    if (-not $ResourceGroup) { $ResourceGroup = "power-automate-rg" }
+    if (-not $FunctionAppName) { $FunctionAppName = "power-automate-dev-20250723" }
 } else {
-    if (-not $ResourceGroup) { $ResourceGroup = "rg-powerautomate-prod" }
-    if (-not $FunctionAppName) { $FunctionAppName = "func-powerautomate-prod" }
+    if (-not $ResourceGroup) { $ResourceGroup = "power-automate-rg" }
+    if (-not $FunctionAppName) { $FunctionAppName = "power-automate-prod-20250723" }
 }
 
 Write-Host "Deployment configuration:" -ForegroundColor $Yellow
